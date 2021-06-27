@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+    <fullyQualifiedTypeName name="org.apache.spark.sql.types.StructType"/>
+    <fullyQualifiedTypeName name="org.apache.spark.sql.types.DataTypes"/>
+    <fullyQualifiedTypeName name="org.apache.spark.sql.types.StructField"/>
+    <fullyQualifiedTypeName name="org.apache.spark.sql.Dataset"/>
+    <fullyQualifiedTypeName name="org.apache.spark.sql.Row"/>
+    <fullyQualifiedTypeName name="com.sparkSampleExample.Application.Application"/>
+    <fullyQualifiedTypeName name="org.apache.spark.sql.SparkSession"/>
+    <fullyQualifiedTypeName name="org.apache.log4j.Logger"/>
+    <fullyQualifiedTypeName name="org.apache.log4j.Level"/>
+</qualifiedTypeNameHistroy>

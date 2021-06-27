@@ -1,0 +1,3 @@
+INDEX VERSION 1.131+E:\Study\Spark\Java-Spark\CodeBase\Java_Spark_Hive\.metadata\.plugins\org.eclipse.jdt.core
+1927688902.index
+1800915845.index

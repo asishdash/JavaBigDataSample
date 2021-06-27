@@ -1,0 +1,5 @@
+package com.sparkSampleExample.sparkApi.AnalyticalFunction;
+
+public class WindowDataFrame {
+
+}

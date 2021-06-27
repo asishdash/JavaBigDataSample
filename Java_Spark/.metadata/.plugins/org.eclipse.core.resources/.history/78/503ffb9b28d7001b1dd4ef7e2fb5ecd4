@@ -1,0 +1,37 @@
+package com.sparkSampleExample.sparkApi;
+
+import org.apache.spark.sql.SparkSession;
+
+import com.sparkSampleExample.Application.Application;
+
+public class Read_CSV_Json_With_Schema_Demo {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		Application app = new Application();
+		SparkSession spark = getSparkInstance(app);
+		
+
+	}
+	
+	public  void  read_csv_defined_schema() {
+		
+		
+		
+	}
+	
+	
+	public static SparkSession getSparkInstance(Application app) {
+		
+	
+	}
+	
+	
+	public static void closeSparkSession(SparkSession spark , Application app) {
+		
+		app.implamentSparkSessionClose(spark);
+		
+	}
+
+}

@@ -1,0 +1,310 @@
+package Hortonworks.SparkTutorial;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.SparkConf;
+import scala.Tuple2;
+
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.yarn.api.records.ApplicationId;
+import org.apache.hadoop.yarn.logaggregation.LogCLIHelpers;
+import org.apache.hadoop.yarn.util.ConverterUtils;
+import org.apache.log4j.Logger;
+import org.apache.spark.sql.SparkSession;
+import static org.apache.spark.sql.functions.col;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.List;
+
+public class Main {
+
+    static Logger log = Logger.getLogger(Main.class.getName());
+
+    public static void main(String[] args){
+    	System.out.println("********args**********");
+    	System.out.println(args.toString());
+    	read_args(args);
+        //Create a SparkContext to initialize
+        //SparkConf conf = new SparkConf().setAppName("AryanHive");
+
+        // Create a Java version of the Spark Context
+        //JavaSparkContext sc = new JavaSparkContext(conf);
+        
+        
+
+        SparkSession spark = SparkSession
+                .builder()
+                .appName("Java Spark SQL basic example")
+                //.config("spark.some.config.option", "some-value")
+                .enableHiveSupport()
+                .getOrCreate();
+        
+        JavaSparkContext sc = new JavaSparkContext(spark.sparkContext());
+
+        System.out.println("************ CONF***************** **********");
+        //System.out.println(conf.getAppId());
+        System.out.println("***********SPARK***************");
+        System.out.println(spark.sparkContext().applicationId());
+        String appId = spark.sparkContext().applicationId();
+        System.out.println("********** sc *********************");
+        
+        
+        
+        read_args(args );
+// ///
+        // Load the text into a Spark RDD, which is a distributed representation of each line of text
+        check_file_exist();
+        copy_File_from_haddop();
+        copy_File_to_haddop();
+        
+        Dataset<Row> df0 = spark.sql("select * from ASISHD.employee");
+        df0.show();
+//        List<Row> currentTablesList = df0.collectAsList();
+//        if (currentTablesList.size() > 0) {
+//            for (int i=0; i< currentTablesList.size(); i++) {
+//                String table = currentTablesList.get(i).getAs("name");
+//                System.out.printf("%s, ", table);
+//            }
+//        }
+//        else System.out.printf("No Table found forNo Aryan!!!!!!!!!!!!");
+
+        JavaRDD<String> textFile = sc.textFile("hdfs://nameservice1/user/edureka_1514443/file/shakespeare.txt");
+        JavaPairRDD<String, Integer> counts = textFile
+                .flatMap(s -> Arrays.asList(s.split("[ ,]")).iterator())
+                .mapToPair(word -> new Tuple2<>(word, 1))
+                .reduceByKey((a, b) -> a + b);
+        //counts.foreach(p -> System.out.println(p));
+        System.out.println("Total words: " + counts.count());
+        
+        
+//        Dataset<Row> sqlDF = spark.sql("select * from employee.emp");
+        System.out.println("*******************************Aryan***********************");
+//        sqlDF.show();
+        System.out.println("*******************************Dash***********************");
+        
+        System.out.println(spark.sql("Select 8").collect());
+        log.info("Hello this is an info message");
+        
+        //counts.saveAsTextFile("hdfs://nameservice1/user/edureka_1514443/demo/");
+        read_logs(appId);
+    }
+    
+    
+    public static void  check_file_exist() {
+    	try {
+    	 String fileName ="hdfs://nameservice1/user/edureka_1514443/file/shakespeare.txt";
+    	 String fileNames ="hdfs://nameservice1/user/edureka_1514443/file/shakespearesssss.txt";
+    	 Configuration config = new Configuration();
+    	 config.set("fs.hdfs.impl", 
+    	            org.apache.hadoop.hdfs.DistributedFileSystem.class.getName()
+    	        );
+    	       config.set("fs.file.impl",
+    	            org.apache.hadoop.fs.LocalFileSystem.class.getName()
+    	        );
+    	  FileSystem hdfs;
+		
+			hdfs = FileSystem.get(config);
+		    Path path = new Path(fileName);
+    	  boolean isExists = hdfs.exists(path);
+    	  
+    	  
+    	  System.out.println("********Check file exists************************************");
+    	  System.out.println(isExists);
+    	  
+    	  System.out.println("************End Check file exist 01***********************************");
+    	  path = new Path(fileNames);
+    	  boolean isExistss = hdfs.exists(path);
+    	  System.out.println("********Check file exists 02************************************");
+    	  System.out.println(isExistss);
+    	  if(!isExistss) {
+    		  create_directory() ;
+    	  }
+    	  
+    	  System.out.println("************End Check file exist***********************************");
+    	} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	  
+    }
+    
+    public static void create_directory() {
+    	System.out.println("Create directory Process started");
+    	try {
+    	Configuration config = new Configuration();
+    	   config.addResource(new Path("/etc/hadoop/conf/core-site.xml"));
+    	   config.addResource(new Path("/etc/hadoop/conf/hdfs-site.xml"));
+
+    	   config.set("fs.hdfs.impl", 
+    	            org.apache.hadoop.hdfs.DistributedFileSystem.class.getName()
+    	        );
+    	       config.set("fs.file.impl",
+    	            org.apache.hadoop.fs.LocalFileSystem.class.getName()
+    	        );
+    	  FileSystem dfs;
+		
+			dfs = FileSystem.get(config);
+			
+		
+    	  String dirName = "TestDirectory";
+    	  System.out.println("Working directory Started");
+    	  System.out.println(dfs.getWorkingDirectory() +" this is from /n/n");
+    	  Path src = new Path(dfs.getWorkingDirectory()+"/"+dirName);
+    	  System.out.println("Working directory Ended");
+           if(!dfs.exists(src)) {
+    	    dfs.mkdirs(src);
+    	    System.out.println("Create directory Process Ended");
+           }
+           else {
+        	   System.out.println("*****************ExistCreate directory Process Ended*******");
+        	   System.out.println("*********** No need to create Create directory Process Ended*************");
+           }
+    	} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    
+    	
+    	
+    }
+    
+    public static void copy_File_to_haddop()  {
+    	
+    	System.out.println("*****************Copy file to hdfs from local *********************************");
+	
+    	Configuration conf = new Configuration();
+    	conf.addResource(new Path("/home/user/hadoop/conf/core-site.xml"));
+    	conf.addResource(new Path("/home/user/hadoop/conf/hdfs-site.xml"));
+
+    	FileSystem fs;
+		try {
+			fs = FileSystem.get(conf);
+		
+    	fs.copyFromLocalFile(new Path("/mnt/home/edureka_1514443/shakespeare.txt"), 
+    	  new Path("hdfs://nameservice1/user/edureka_1514443/TestDirectory"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	System.out.println("**********END*******Copy file to hdfs from local *********************************");
+	}
+    
+    public static void copy_File_from_haddop()  {
+    	
+    	System.out.println("*****************Copy file FROM hdfs TO local *********************************");
+    	
+    	Configuration conf = new Configuration();
+    	conf.addResource(new Path("/home/user/hadoop/conf/core-site.xml"));
+    	conf.addResource(new Path("/home/user/hadoop/conf/hdfs-site.xml"));
+
+    	
+    	try {
+    		FileSystem fs = FileSystem.get(conf);
+			fs.copyToLocalFile( 
+			  new Path("hdfs://nameservice1/user/edureka_1514443/file/shakespeare.txt"),
+			  new Path("/mnt/home/edureka_1514443/sampledemo/")
+					);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	System.out.println("********END*********Copy file FROM hdfs TO local *********************************");
+	}
+    
+    
+    public static void read_args(String[] args ) {
+    	
+    	if(args.length>0) {
+    		
+    		System.out.println(args.toString());
+    		
+    	}else {
+    		System.out.println("*****length ars value ******************");
+    		System.out.println("**Length zero args**");
+    	}
+    	//variable // file //optional
+    	
+    }
+
+    public static void check_hdfs_dir_empty_or_not() {
+    	
+    }
+    
+    public static void check_file_dir_empty_or_not() {
+    	
+    	
+    }
+    
+    public static void read_csv() {
+    	
+    }
+    
+    public static void read_logs(String appid) {
+    	
+    	String applicationId = "application_1492795815045_3940";
+    	ApplicationId appId  = ConverterUtils.toApplicationId(applicationId);
+    	LogCLIHelpers logCliHelper = new LogCLIHelpers();
+    	Configuration config = new Configuration();
+    	logCliHelper.setConf(config);
+    	String appOwner;
+		try {
+			appOwner = UserGroupInformation.getCurrentUser().getShortUserName();
+		
+    	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    	PrintStream ps = new PrintStream(baos);
+    	// Function to retrieve logs
+    	logCliHelper.dumpAllContainersLogs(appId, appOwner, ps);
+    	String content = new String(baos.toByteArray(), StandardCharsets.UTF_8);
+    	System.out.println(content);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+    }
+    
+    public static void read_logs_cont(String appid) {
+    	
+    	BufferedReader br = null;
+        try {
+            Process p = Runtime.getRuntime().exec(String.format("yarn logs -applicationId %s", appid));
+            br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while((line = br.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if(br != null) {
+                try {
+					br.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+        }
+    }
+    
+
+    
+    
+}

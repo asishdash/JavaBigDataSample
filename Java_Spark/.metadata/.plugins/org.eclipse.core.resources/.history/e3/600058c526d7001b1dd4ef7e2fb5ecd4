@@ -1,0 +1,28 @@
+package com.sparkSampleExample.Application;
+
+import org.apache.spark.sql.SparkSession;
+
+public class Application {
+
+	
+	public static void main(String args) {
+		
+	}
+	
+	
+	public SparkSession implamentSparkSession( String name) {
+		
+		SparkSession spark = SparkSession.builder()
+		        .appName("JSON Lines to Dataframe")
+		        .master("local")
+		        .getOrCreate();
+		
+		return spark;
+		
+	}
+	
+	
+	public void implementSparkContext() {
+		
+	}
+}

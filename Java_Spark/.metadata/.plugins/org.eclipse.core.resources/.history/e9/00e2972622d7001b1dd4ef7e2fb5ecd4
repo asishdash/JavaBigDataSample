@@ -1,0 +1,5 @@
+package com.sparkSampleExample.sparkApi;
+
+public class Infer_CSV_SCHEMA {
+
+}
